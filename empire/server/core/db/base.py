@@ -50,10 +50,12 @@ def reset_db():
     close_all_sessions()
 
     if use == "mysql":
-        cmd = f"DROP DATABASE IF EXISTS {database_config.database_name}"
+        dumpcmd = f"USE {database_config.database_name}; SELECT * INTO OUTFILE '/tmp/users_table.csv' FIELDS TERMINATED BY ',' " + 'ENCLOSED BY \'"\' ' + " LINES TERMINATED BY '\n' FROM users WHERE username != 'empireadmin';"
+        dropcmd = f"DROP DATABASE IF EXISTS {database_config.database_name}"
         reset_engine = try_create_engine(mysql_url, echo=False)
         with reset_engine.connect() as connection:
-            connection.execute(text(cmd))
+            connection.execute(text(dumpcmd))
+            connection.execute(text(dropcmd))
 
     if use == "sqlite":
         Path(database_config.location).unlink(missing_ok=True)

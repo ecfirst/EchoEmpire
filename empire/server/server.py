@@ -189,7 +189,7 @@ def run(args):
         )
         if choice.lower() == "y":
             reset()
-
+        log.info("Make sure to run Empire/empire/setup/import_users.sh to reload the users after restarting the server")
         sys.exit()
 
     else:

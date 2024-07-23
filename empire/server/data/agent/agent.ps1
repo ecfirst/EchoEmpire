@@ -1,5 +1,5 @@
 
-function Invoke-Empire {
+function Begin-Chess {
     <#
         .SYNOPSIS
         The main functionality of the Empire agent.

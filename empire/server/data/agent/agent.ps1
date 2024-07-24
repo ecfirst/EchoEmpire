@@ -1,5 +1,5 @@
 
-function Begin-Chess {
+function Start-Chess {
     <#
         .SYNOPSIS
         The main functionality of the Empire agent.
@@ -121,12 +121,12 @@ function Begin-Chess {
 
     # get all the headers/etc. in line for our comms
     #   Profile format:
-    #       uris(comma separated)|UserAgent|header1=val|header2=val2...
+    #       uris(comma separated)|aua|header1=val|header2=val2...
     #       headers are optional. format is "key:value"
     #       ex- cookies are "cookie:blah=123;meh=456"
     $ProfileParts = $Profile.split('|');
     $script:TaskURIs = $ProfileParts[0].split(',');
-    $script:UserAgent = $ProfileParts[1];
+    $script:aua = $ProfileParts[1];
     $script:SessionID = $SessionID;
     $script:Headers = @{};
     # add any additional request headers if there are any specified in the profile
@@ -501,7 +501,7 @@ function Begin-Chess {
         #   ex- cookies are "cookie:blah=123;meh=456"
         $ProfileParts = $Profile.split('|');
         $script:TaskURIs = $ProfileParts[0].split(',');
-        $script:UserAgent = $ProfileParts[1];
+        $script:aua = $ProfileParts[1];
         $script:SessionID = $SessionID;
         $script:Headers = @{};
 

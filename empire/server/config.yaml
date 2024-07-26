@@ -1,7 +1,7 @@
 suppress-self-cert-warning: true
 api:
   port: 1337
-  cert_path: empire/server/data/
+  cert_path: /empire_certs/
 database:
   use: mysql
   mysql:
@@ -19,8 +19,8 @@ database:
     password: h^B*aTrdn2eQmjt5
     obfuscation:
       - language: powershell
-        enabled: false
-        command: "Token\\All\\1"
+        enabled: true
+        command: "Token\\String\\1,Token\\String\\2,Token\\Argument\\1,Token\\Comment\\1"
         module: "invoke-obfuscation"
         preobfuscatable: true
       - language: csharp
@@ -36,8 +36,6 @@ database:
     keyword_obfuscation:
       - Invoke-Empire
       - Invoke-Mimikatz
-      - server
-      - ControlServers
     # an IP white list to ONLY accept clients from
     #   format is "192.168.1.1,192.168.1.10-192.168.1.100,10.0.0.0/8"
     ip-whitelist: ""
@@ -58,12 +56,12 @@ plugins:
   csharpserver:
     status: start
 directories:
-  downloads: /empire_data/
+  downloads: /empire_downloads/
   module_source: empire/server/data/module_source/
   obfuscated_module_source: empire/server/data/obfuscated_module_source/
 logging:
   level: INFO
-  directory: empire/server/downloads/logs/
+  directory: /empire_downloads/logs/
   simple_console: true
 debug:
   last_task:

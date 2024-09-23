@@ -14,6 +14,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.11.5] - 2024-09-22
+
+-   Updated Starkiller to v2.8.2
+-   Fixed various Python 3.12 SyntaxWarning
+
+## [5.11.4] - 2024-09-04
+
+### Added
+
+-   Added nameserver check for linux hosts (@0x636f646f)
+
+## [5.11.3] - 2024-09-04
+
+### Changed
+
+-   Updated Rubeus to v2.3.2 (@Cx01N)
+
+### Fixed
+
+-   Fixed Rubeus error where only first arg was being used (@Cx01N)
+-   Fixed background jobs checking in continuously (@Cx01N)
+-   Fixed Rubeus killing agent when certain options were given that use System.Environment.Exit (@Cx01N) 
+-   Fixed option parsing error in credential/tokens module (@Cx01N)
+-   Removed requirement for credid for mimikatz/pth (@Cx01N)
+
+## [5.11.2] - 2024-08-08
+
+### Added
+
+-   Added Route4Me to sponsor page on Empire (@Cx01N)
+
+### Fixed
+
+-   Fixed global obfuscation bug in listener staging (@Cx01N)
+
+## [5.11.1] - 2024-07-23
+
+### Changed
+
+-   Updated Ruff to 0.5.3 and added additional Ruff rules (@Vinnybod)
+
+### Fixed
+
+-   Removed duplicate code for ironpython agent for loading path resetting (@Cx01N)
+-   Fixed issue of Sharpire taskings not getting assigned correct id (@Cx01N)
+
+## [5.11.0] - 2024-07-14
+
+### Added
+
+-   Added threaded jobs for powershell tasks using Appdomains (@Cx01N)
+-   Added job tracking for all tasks in Sharpire (@Cx01N)
+-   Updated agents to track all tasks and removed only tracking jobs (@Cx01N)
+-   Added Invoke-BSOD modules (@Cx01N)
+-   Added ticketdumper ironpython module (@Hubbl3)
+-   Added ThreadlessInject module (@Cx01N)
+
+### Fixed
+
+-   Fixed issue in python agents where background jobs were failed due to a missing character (@Cx01N)
+-   Fixed task bundling for the c# server plugin (@Cx01N)
+-   Fixed missing New-GPOImmediateTask in powerview (@Cx01N)
+-   Fixed NET45 missing folder causing a compilation error (@Cx01N)
+-   Fixed NET45 files not being removed on server reset (@Cx01N)
+
+### Changed
+
+-   Converted C# server plugin to use plugin taskings (@Cx01N)
+-   Upgraded Ruff to 0.5.0 and Black to 24.4.2 (@Vinnybod)
+-   Added pylint-convention (PLC), pylint-error (PLE), pylint-warning (PLW), and pylint-refactor (PLR) to ruff config (@Vinnybod)
+
 ## [5.10.3] - 2024-05-23
 
 ### Changed
@@ -863,7 +934,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Updated shellcoderdi to newest version (@Cx01N)
 -   Added a Nim launcher (@Hubbl3)
 
-[Unreleased]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.10.3...HEAD
+[Unreleased]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.11.5...HEAD
+
+[5.11.5]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.11.4...v5.11.5
+
+[5.11.4]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.11.3...v5.11.4
+
+[5.11.3]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.11.2...v5.11.3
+
+[5.11.2]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.11.1...v5.11.2
+
+[5.11.1]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.11.0...v5.11.1
+
+[5.11.0]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.10.3...v5.11.0
 
 [5.10.3]: https://github.com/BC-SECURITY/Empire-Sponsors/compare/v5.10.2...v5.10.3
 

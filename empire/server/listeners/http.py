@@ -263,9 +263,9 @@ class Listener:
                 #stager += bypass
 
             if safeChecks.lower() == "true":
-                prestager += "; [System.Net.ServicePointManager]::Expect100Continue=0;{"
+                prestager += "; [System.Net.ServicePointManager]::Expect100Continue=0;"
 
-            stager = "};sleep(3);"
+            stager = ";sleep(3);"
 
             if userAgent.lower() == "default":
                 profile = listenerOptions["DefaultProfile"]["Value"]
@@ -382,9 +382,11 @@ class Listener:
                     obfuscation_command=obfuscation_command,
                 )
             
+            prestager += "{"
             for bypass in bypasses:
                 prestager += bypass
-                
+            
+            prestager += "}"
             stager = prestager + stager
 
             # base64 encode the stager and return it

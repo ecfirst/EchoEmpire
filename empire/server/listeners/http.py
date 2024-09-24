@@ -263,7 +263,7 @@ class Listener:
             #for bypass in bypasses:
                 #stager += bypass
 
-            stager = ";sleep(3);"
+            stager = "sleep(3);"
 
             if userAgent.lower() == "default":
                 profile = listenerOptions["DefaultProfile"]["Value"]

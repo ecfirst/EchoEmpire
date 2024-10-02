@@ -106,7 +106,7 @@ function Start-Chess {
 
     # the currently active server
     $Script:sIndex = 0;
-    $Script:Cservs = myserver;
+    $Script:Cservs = $myserver;
 
     # the number of times to retry server connections, i.e. the 'lost limit
     $Retries = 1;
